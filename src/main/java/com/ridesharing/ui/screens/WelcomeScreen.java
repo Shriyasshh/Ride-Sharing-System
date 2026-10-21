@@ -78,14 +78,14 @@ public class WelcomeScreen extends JPanel {
         registerBtn.addActionListener(e -> { if (onRegister != null) onRegister.run(); });
 
         // Demo hint
-        JLabel demoHint = new JLabel("<html><div style='text-align:center;'>"
-                + "<b>Demo credentials:</b><br>"
-                + "Email: aarav@example.com<br>"
-                + "Password: demo123"
-                + "</div></html>", SwingConstants.CENTER);
-        demoHint.setFont(AppTheme.FONT_CAPTION);
-        demoHint.setForeground(AppTheme.TEXT_MUTED);
-        demoHint.setAlignmentX(Component.CENTER_ALIGNMENT);
+//        JLabel demoHint = new JLabel("<html><div style='text-align:center;'>"
+//                + "<b>Demo credentials:</b><br>"
+//                + "Email: aarav@example.com<br>"
+//                + "Password: demo123"
+//                + "</div></html>", SwingConstants.CENTER);
+//        demoHint.setFont(AppTheme.FONT_CAPTION);
+//        demoHint.setForeground(AppTheme.TEXT_MUTED);
+//        demoHint.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         card.add(logo);
         card.add(Box.createVerticalStrut(12));
@@ -101,7 +101,7 @@ public class WelcomeScreen extends JPanel {
         card.add(Box.createVerticalStrut(12));
         card.add(registerBtn);
         card.add(Box.createVerticalStrut(24));
-        card.add(demoHint);
+//        card.add(demoHint);
 
         add(card);
     }

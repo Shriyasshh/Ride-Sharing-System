@@ -43,8 +43,7 @@ public class Main {
                         + metadata.getDatabaseProductName() + " "
                         + metadata.getDatabaseProductVersion());
             } catch (Exception e) {
-                System.out.println("[INFO] Real database not reachable (" + e.getMessage()
-                        + "). Application running in self-contained Mock Mode.");
+                System.out.println("[INFO] Real database not reachable (" + e.getMessage() + "). Application running in self-contained Mock Mode.");
             }
         }, "DB-Check-Worker");
         dbThread.setDaemon(true);

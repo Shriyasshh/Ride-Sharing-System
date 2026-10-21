@@ -1,7 +1,15 @@
 package com.ridesharing.service;
 
-import com.ridesharing.service.interfaces.*;
-import com.ridesharing.service.mock.*;
+import com.ridesharing.service.interfaces.AuthService;
+import com.ridesharing.service.interfaces.BookingService;
+import com.ridesharing.service.interfaces.RideService;
+import com.ridesharing.service.interfaces.UserService;
+import com.ridesharing.service.interfaces.VehicleService;
+import com.ridesharing.service.mock.MockAuthService;
+import com.ridesharing.service.mock.MockBookingService;
+import com.ridesharing.service.mock.MockRideService;
+import com.ridesharing.service.mock.MockUserService;
+import com.ridesharing.service.mock.MockVehicleService;
 
 /**
  * Factory for obtaining service instances.
@@ -15,11 +23,7 @@ import com.ridesharing.service.mock.*;
  *    (UserDAO, VehicleDAO, etc.) to perform actual database operations.
  *
  * 3. In this factory, change the corresponding getter to return
- *    your real implementation instead of the mock.
- *    For example:
- *      public static AuthService getAuthService() {
- *          return new RealAuthService();  // instead of MockAuthService
- *      }
+ *    your real implementation instead of the mock, or call setUseRealServices(true).
  *
  * 4. The UI code will automatically use the real backend
  *    because it only references the service interfaces.
@@ -57,5 +61,19 @@ public final class ServiceFactory {
     public static synchronized BookingService getBookingService() {
         if (bookingService == null) bookingService = new MockBookingService();
         return bookingService;
+    }
+
+    public static synchronized void setUseRealServices(boolean real) {
+        if (real) {
+            userService = new com.ridesharing.service.UserService();
+            vehicleService = new com.ridesharing.service.VehicleService();
+            rideService = new com.ridesharing.service.RideService();
+            bookingService = new com.ridesharing.service.BookingService();
+        } else {
+            userService = new MockUserService();
+            vehicleService = new MockVehicleService();
+            rideService = new MockRideService();
+            bookingService = new MockBookingService();
+        }
     }
 }
