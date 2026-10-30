@@ -129,7 +129,7 @@ public class MyBookingsScreen extends JPanel {
             BigDecimal fare = ride != null ? ride.getCostPerSeat().multiply(BigDecimal.valueOf(b.getSeatsBooked())) : BigDecimal.ZERO;
 
             tableModel.addRow(new Object[]{
-                    "DEMO-B" + b.getBookingId(),
+                    "#" + b.getBookingId(),
                     route,
                     departure,
                     b.getSeatsBooked(),
@@ -157,7 +157,7 @@ public class MyBookingsScreen extends JPanel {
         String route = ride != null ? ride.getSourceAddress() + " → " + ride.getDestinationAddress() : "N/A";
 
         int confirm = JOptionPane.showConfirmDialog(this,
-                "Cancel booking DEMO-B" + booking.getBookingId() + "?\n\n" +
+                "Cancel booking #" + booking.getBookingId() + "?\n\n" +
                 "Route: " + route + "\n" +
                 "Seats: " + booking.getSeatsBooked() + "\n\n" +
                 "This action cannot be undone.",
@@ -166,10 +166,23 @@ public class MyBookingsScreen extends JPanel {
                 JOptionPane.WARNING_MESSAGE);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            ServiceFactory.getBookingService().cancelBooking(booking.getBookingId());
-            JOptionPane.showMessageDialog(this, "Booking cancelled successfully.",
-                    "Cancelled", JOptionPane.INFORMATION_MESSAGE);
-            loadData();
+            try {
+                boolean success = ServiceFactory.getBookingService().cancelBooking(booking.getBookingId());
+                if (success) {
+                    JOptionPane.showMessageDialog(this, "Booking cancelled successfully.",
+                            "Cancelled", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Failed to cancel booking.",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
+                loadData();
+            } catch (IllegalArgumentException | IllegalStateException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(),
+                        "Cannot Cancel Booking", JOptionPane.WARNING_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error cancelling booking: " + ex.getMessage(),
+                        "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 }

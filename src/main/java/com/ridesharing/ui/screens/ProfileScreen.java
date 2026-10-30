@@ -176,12 +176,20 @@ public class ProfileScreen extends JPanel {
         user.setPhoneNo(phone);
         user.setBehaviour(behaviour.isEmpty() ? null : behaviour);
 
-        boolean success = ServiceFactory.getUserService().updateProfile(user);
-        if (success) {
-            JOptionPane.showMessageDialog(this, "Profile updated successfully.",
-                    "Saved", JOptionPane.INFORMATION_MESSAGE);
-        } else {
-            JOptionPane.showMessageDialog(this, "Failed to update profile.",
+        try {
+            boolean success = ServiceFactory.getUserService().updateProfile(user);
+            if (success) {
+                JOptionPane.showMessageDialog(this, "Profile updated successfully.",
+                        "Saved", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to update profile.",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(),
+                    "Validation Error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error updating profile: " + ex.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
     }

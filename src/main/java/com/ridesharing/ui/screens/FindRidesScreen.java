@@ -259,7 +259,7 @@ public class FindRidesScreen extends JPanel {
             int remaining = ServiceFactory.getRideService().getRemainingSeats(r.getRideId());
 
             tableModel.addRow(new Object[]{
-                    "DEMO-R" + r.getRideId(),
+                    "#" + r.getRideId(),
                     r.getSourceAddress() + " → " + r.getDestinationAddress(),
                     r.getDepartureTime().format(DT_FMT),
                     driver != null ? driver.getName() : "Unknown",

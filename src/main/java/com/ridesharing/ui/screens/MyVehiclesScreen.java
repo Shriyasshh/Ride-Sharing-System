@@ -141,16 +141,26 @@ public class MyVehiclesScreen extends JPanel {
             }
 
             User user = ServiceFactory.getAuthService().getCurrentUser();
-            Vehicle vehicle = new Vehicle(0, model, user.getUserId());
-            Vehicle added = ServiceFactory.getVehicleService().addVehicle(vehicle);
+            if (user != null) {
+                try {
+                    Vehicle vehicle = new Vehicle(0, model, user.getUserId());
+                    Vehicle added = ServiceFactory.getVehicleService().addVehicle(vehicle);
 
-            JOptionPane.showMessageDialog(this,
-                    "Vehicle added successfully!\n\nVehicle ID: " + added.getVehicleId() +
-                    "\nModel: " + added.getCarModel(),
-                    "Vehicle Added",
-                    JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(this,
+                            "Vehicle added successfully!\n\nVehicle ID: " + added.getVehicleId() +
+                            "\nModel: " + added.getCarModel(),
+                            "Vehicle Added",
+                            JOptionPane.INFORMATION_MESSAGE);
 
-            loadData();
+                    loadData();
+                } catch (IllegalArgumentException | IllegalStateException ex) {
+                    JOptionPane.showMessageDialog(this, ex.getMessage(),
+                            "Validation Error", JOptionPane.ERROR_MESSAGE);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Error adding vehicle: " + ex.getMessage(),
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
         }
     }
 
@@ -162,6 +172,13 @@ public class MyVehiclesScreen extends JPanel {
         int vehicleId = (int) tableModel.getValueAt(modelRow, 0);
         String model = (String) tableModel.getValueAt(modelRow, 1);
 
+        User currentUser = ServiceFactory.getAuthService().getCurrentUser();
+        if (currentUser == null) {
+            JOptionPane.showMessageDialog(this, "You must be logged in to delete a vehicle.",
+                    "Authentication Required", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         int confirm = JOptionPane.showConfirmDialog(this,
                 "Delete vehicle \"" + model + "\" (ID: " + vehicleId + ")?\n\n" +
                 "This action cannot be undone.",
@@ -170,9 +187,19 @@ public class MyVehiclesScreen extends JPanel {
                 JOptionPane.WARNING_MESSAGE);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            ServiceFactory.getVehicleService().deleteVehicle(vehicleId);
-            JOptionPane.showMessageDialog(this, "Vehicle deleted.", "Deleted", JOptionPane.INFORMATION_MESSAGE);
-            loadData();
+            try {
+                boolean deleted = ServiceFactory.getVehicleService().deleteVehicle(vehicleId, currentUser.getUserId());
+                if (deleted) {
+                    JOptionPane.showMessageDialog(this, "Vehicle deleted successfully.", "Vehicle Deleted", JOptionPane.INFORMATION_MESSAGE);
+                    loadData();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Vehicle could not be deleted.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (IllegalStateException | IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Cannot Delete Vehicle", JOptionPane.WARNING_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error deleting vehicle: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 }

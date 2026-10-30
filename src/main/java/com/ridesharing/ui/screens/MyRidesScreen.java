@@ -49,9 +49,9 @@ public class MyRidesScreen extends JPanel {
 
         // ── Table ──
         String[] cols = {"Ride ID", "Route", "Departure", "Vehicle", "Total", "Confirmed",
-                "Remaining", "₹/Seat", "Status", "Actions"};
+                "Remaining", "₹/Seat", "Status", "Passengers", "Actions"};
         tableModel = new DefaultTableModel(cols, 0) {
-            public boolean isCellEditable(int r, int c) { return c == 9; }
+            public boolean isCellEditable(int r, int c) { return c == 9 || c == 10; }
         };
 
         table = new JTable(tableModel);
@@ -61,10 +61,16 @@ public class MyRidesScreen extends JPanel {
         table.getColumnModel().getColumn(8).setCellRenderer(
                 new AppTheme.StatusBadgeRenderer());
 
-        // Cancel button column
+        // View Passengers button column
         table.getColumnModel().getColumn(9).setCellRenderer(
-                new FindRidesScreen.ButtonRenderer("Cancel"));
+                new FindRidesScreen.ButtonRenderer("View Passengers"));
         table.getColumnModel().getColumn(9).setCellEditor(
+                new FindRidesScreen.ButtonEditor("View Passengers", this::viewPassengersForSelectedRide));
+
+        // Cancel button column
+        table.getColumnModel().getColumn(10).setCellRenderer(
+                new FindRidesScreen.ButtonRenderer("Cancel"));
+        table.getColumnModel().getColumn(10).setCellEditor(
                 new FindRidesScreen.ButtonEditor("Cancel", this::cancelSelectedRide));
 
         // Center aligned columns
@@ -75,6 +81,19 @@ public class MyRidesScreen extends JPanel {
         table.getColumnModel().getColumn(5).setCellRenderer(centerRenderer);
         table.getColumnModel().getColumn(6).setCellRenderer(centerRenderer);
         table.getColumnModel().getColumn(7).setCellRenderer(centerRenderer);
+
+        // Column widths
+        table.getColumnModel().getColumn(0).setPreferredWidth(70);
+        table.getColumnModel().getColumn(1).setPreferredWidth(170);
+        table.getColumnModel().getColumn(2).setPreferredWidth(130);
+        table.getColumnModel().getColumn(3).setPreferredWidth(100);
+        table.getColumnModel().getColumn(4).setPreferredWidth(50);
+        table.getColumnModel().getColumn(5).setPreferredWidth(65);
+        table.getColumnModel().getColumn(6).setPreferredWidth(65);
+        table.getColumnModel().getColumn(7).setPreferredWidth(65);
+        table.getColumnModel().getColumn(8).setPreferredWidth(85);
+        table.getColumnModel().getColumn(9).setPreferredWidth(115);
+        table.getColumnModel().getColumn(10).setPreferredWidth(75);
 
         // Double click to view ride details
         table.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -127,10 +146,10 @@ public class MyRidesScreen extends JPanel {
         for (Ride r : myRides) {
             Vehicle v = ServiceFactory.getVehicleService().findById(r.getVehicleId());
             int confirmed = ServiceFactory.getBookingService().getConfirmedSeatsForRide(r.getRideId());
-            int remaining = r.getNoOfSeats() - confirmed;
+            int remaining = ServiceFactory.getRideService().getRemainingSeats(r.getRideId());
 
             tableModel.addRow(new Object[]{
-                    "DEMO-R" + r.getRideId(),
+                    "#" + r.getRideId(),
                     r.getSourceAddress() + " → " + r.getDestinationAddress(),
                     r.getDepartureTime().format(DT_FMT),
                     v != null ? v.getCarModel() : "N/A",
@@ -139,9 +158,23 @@ public class MyRidesScreen extends JPanel {
                     remaining,
                     "₹" + r.getCostPerSeat().toPlainString(),
                     r.getRideStatus().name(),
+                    "View Passengers",
                     r.getRideStatus() == Ride.RideStatus.AVAILABLE ? "Cancel" : "—"
             });
         }
+    }
+
+    private void viewPassengersForSelectedRide() {
+        int viewRow = table.getSelectedRow();
+        if (viewRow < 0 || myRides == null) return;
+        int modelRow = table.convertRowIndexToModel(viewRow);
+        if (modelRow >= myRides.size()) return;
+
+        Ride ride = myRides.get(modelRow);
+        Window window = SwingUtilities.getWindowAncestor(this);
+        new com.ridesharing.ui.dialogs.ViewPassengersDialog(
+                window instanceof JFrame ? (JFrame) window : null, ride).setVisible(true);
+        loadData();
     }
 
     private void cancelSelectedRide() {
@@ -157,7 +190,7 @@ public class MyRidesScreen extends JPanel {
         }
 
         int confirm = JOptionPane.showConfirmDialog(this,
-                "Cancel ride DEMO-R" + ride.getRideId() + "?\n" +
+                "Cancel ride #" + ride.getRideId() + "?\n" +
                 "Route: " + ride.getSourceAddress() + " → " + ride.getDestinationAddress() + "\n\n" +
                 "All confirmed bookings for this ride will also be cancelled.",
                 "Confirm Cancellation",
@@ -165,9 +198,19 @@ public class MyRidesScreen extends JPanel {
                 JOptionPane.WARNING_MESSAGE);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            ServiceFactory.getRideService().cancelRide(ride.getRideId());
-            JOptionPane.showMessageDialog(this, "Ride cancelled successfully.", "Cancelled", JOptionPane.INFORMATION_MESSAGE);
-            loadData();
+            try {
+                boolean success = ServiceFactory.getRideService().cancelRide(ride.getRideId());
+                if (success) {
+                    JOptionPane.showMessageDialog(this, "Ride cancelled successfully.", "Cancelled", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Failed to cancel ride.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+                loadData();
+            } catch (IllegalArgumentException | IllegalStateException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Cannot Cancel Ride", JOptionPane.WARNING_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error cancelling ride: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 }

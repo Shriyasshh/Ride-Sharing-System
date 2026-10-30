@@ -30,6 +30,8 @@ import com.ridesharing.service.mock.MockVehicleService;
  */
 public final class ServiceFactory {
 
+    private static boolean useRealServices = false;
+
     private static AuthService authService;
     private static UserService userService;
     private static VehicleService vehicleService;
@@ -38,38 +40,57 @@ public final class ServiceFactory {
 
     private ServiceFactory() {}
 
+    public static synchronized boolean isUseRealServices() {
+        return useRealServices;
+    }
+
     public static synchronized AuthService getAuthService() {
-        if (authService == null) authService = new MockAuthService();
+        if (authService == null) {
+            authService = useRealServices
+                    ? new com.ridesharing.service.RealAuthService((com.ridesharing.service.UserService) getUserService())
+                    : new MockAuthService();
+        }
         return authService;
     }
 
     public static synchronized UserService getUserService() {
-        if (userService == null) userService = new MockUserService();
+        if (userService == null) {
+            userService = useRealServices ? new com.ridesharing.service.UserService() : new MockUserService();
+        }
         return userService;
     }
 
     public static synchronized VehicleService getVehicleService() {
-        if (vehicleService == null) vehicleService = new MockVehicleService();
+        if (vehicleService == null) {
+            vehicleService = useRealServices ? new com.ridesharing.service.VehicleService() : new MockVehicleService();
+        }
         return vehicleService;
     }
 
     public static synchronized RideService getRideService() {
-        if (rideService == null) rideService = new MockRideService();
+        if (rideService == null) {
+            rideService = useRealServices ? new com.ridesharing.service.RideService() : new MockRideService();
+        }
         return rideService;
     }
 
     public static synchronized BookingService getBookingService() {
-        if (bookingService == null) bookingService = new MockBookingService();
+        if (bookingService == null) {
+            bookingService = useRealServices ? new com.ridesharing.service.BookingService() : new MockBookingService();
+        }
         return bookingService;
     }
 
     public static synchronized void setUseRealServices(boolean real) {
+        useRealServices = real;
         if (real) {
             userService = new com.ridesharing.service.UserService();
+            authService = new com.ridesharing.service.RealAuthService((com.ridesharing.service.UserService) userService);
             vehicleService = new com.ridesharing.service.VehicleService();
             rideService = new com.ridesharing.service.RideService();
             bookingService = new com.ridesharing.service.BookingService();
         } else {
+            authService = new MockAuthService();
             userService = new MockUserService();
             vehicleService = new MockVehicleService();
             rideService = new MockRideService();
@@ -77,3 +98,4 @@ public final class ServiceFactory {
         }
     }
 }
+

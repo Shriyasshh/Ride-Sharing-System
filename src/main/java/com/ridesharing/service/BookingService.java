@@ -303,4 +303,38 @@ public class BookingService implements com.ridesharing.service.interfaces.Bookin
             throw new RuntimeException("Database error fetching confirmed seats: " + e.getMessage(), e);
         }
     }
+
+    /**
+     * Retrieve all passenger bookings for a specific ride with authorization check.
+     * Enforces the business rule that only the driver who created/published the ride
+     * may view the passengers and booking details.
+     *
+     * @param rideId ID of the ride
+     * @param driverId ID of the requesting driver
+     * @return list of bookings with passenger details populated
+     * @throws IllegalArgumentException if ride is not found or requester is not the driver
+     */
+    @Override
+    public List<Booking> getPassengersByRide(int rideId, int driverId) {
+        if (rideId <= 0 || driverId <= 0) {
+            throw new IllegalArgumentException("Valid ride ID and driver ID are required.");
+        }
+
+        try {
+            Ride ride = rideDAO.findById(rideId);
+            if (ride == null) {
+                throw new IllegalArgumentException("Ride with ID " + rideId + " does not exist.");
+            }
+
+            // Authorization rule: Only the publishing driver can view passenger details
+            if (ride.getDriverId() != driverId) {
+                throw new IllegalArgumentException("Unauthorized: Only the publishing driver can view passenger details for this ride.");
+            }
+
+            return bookingDAO.findBookingsWithPassengersByRide(rideId);
+        } catch (SQLException e) {
+            throw new RuntimeException("Database error fetching passengers for ride: " + e.getMessage(), e);
+        }
+    }
 }
+

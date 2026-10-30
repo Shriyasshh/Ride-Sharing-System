@@ -33,4 +33,13 @@ public interface VehicleService {
      * @return true if deletion was successful
      */
     boolean deleteVehicle(int vehicleId);
+
+    /**
+     * Delete a vehicle by its ID with owner authorization check.
+     * @param vehicleId vehicle ID
+     * @param ownerId ID of the requesting owner
+     * @return true if deletion was successful
+     */
+    boolean deleteVehicle(int vehicleId, int ownerId);
 }
+

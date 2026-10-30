@@ -55,7 +55,7 @@ public class HeaderBar extends JPanel {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 JOptionPane.showMessageDialog(HeaderBar.this,
-                        "You have no new notifications.\n(Notifications are simulated in demo mode)",
+                        "You have no new notifications.",
                         "Notifications", JOptionPane.INFORMATION_MESSAGE);
             }
         });

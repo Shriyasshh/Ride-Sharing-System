@@ -190,7 +190,7 @@ public class DashboardScreen extends JPanel {
                 Ride ride = ServiceFactory.getRideService().findById(b.getRideId());
                 String route = ride != null ? ride.getSourceAddress() + " → " + ride.getDestinationAddress() : "N/A";
                 model.addRow(new Object[]{
-                        "DEMO-B" + b.getBookingId(),
+                        "#" + b.getBookingId(),
                         route,
                         b.getSeatsBooked(),
                         b.getBookingStatus().name()
@@ -265,7 +265,7 @@ public class DashboardScreen extends JPanel {
             for (Ride r : upcoming) {
                 if (count >= 5) break;
                 model.addRow(new Object[]{
-                        "DEMO-R" + r.getRideId(),
+                        "#" + r.getRideId(),
                         r.getSourceAddress() + " → " + r.getDestinationAddress(),
                         r.getDepartureTime().format(DT_FMT),
                         r.getRideStatus().name()

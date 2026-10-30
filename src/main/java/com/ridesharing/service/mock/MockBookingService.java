@@ -92,4 +92,39 @@ public class MockBookingService implements BookingService {
         if (ride == null) return 0;
         return ride.getNoOfSeats() - getConfirmedSeatsForRide(rideId);
     }
+
+    @Override
+    public List<Booking> getPassengersByRide(int rideId, int driverId) {
+        Ride ride = null;
+        for (Ride r : store.getRides()) {
+            if (r.getRideId() == rideId) { ride = r; break; }
+        }
+        if (ride == null) {
+            throw new IllegalArgumentException("Ride with ID " + rideId + " does not exist.");
+        }
+        if (ride.getDriverId() != driverId) {
+            throw new IllegalArgumentException("Unauthorized: Only the publishing driver can view passenger details for this ride.");
+        }
+
+        List<Booking> result = new ArrayList<>();
+        for (Booking b : store.getBookings()) {
+            if (b.getRideId() == rideId) {
+                com.ridesharing.model.User passenger = null;
+                for (com.ridesharing.model.User u : store.getUsers()) {
+                    if (u.getUserId() == b.getPassengerId()) {
+                        passenger = u;
+                        break;
+                    }
+                }
+                if (passenger != null) {
+                    b.setPassengerName(passenger.getName());
+                    b.setPassengerPhone(passenger.getPhoneNo());
+                    b.setPassengerEmail(passenger.getEmail());
+                }
+                result.add(b);
+            }
+        }
+        return result;
+    }
 }
+

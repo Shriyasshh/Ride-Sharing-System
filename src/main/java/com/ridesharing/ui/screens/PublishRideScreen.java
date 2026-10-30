@@ -256,19 +256,24 @@ public class PublishRideScreen extends JPanel {
         Ride ride = new Ride(user.getUserId(), selectedVehicle.getVehicleId(),
                 seats, source, dest, departure, cost);
 
-        Ride published = ServiceFactory.getRideService().publishRide(ride);
+        try {
+            Ride published = ServiceFactory.getRideService().publishRide(ride);
 
-        JOptionPane.showMessageDialog(this,
-                "Ride published successfully!\n\n" +
-                "Ride ID: DEMO-R" + published.getRideId() + "\n" +
-                "Route: " + source + " → " + dest + "\n" +
-                "Departure: " + departure.format(DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a")) + "\n\n" +
-                "Note: This is a demo ride reference.",
-                "Ride Published",
-                JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this,
+                    "Ride published successfully!\n\n" +
+                    "Ride ID: #" + published.getRideId() + "\n" +
+                    "Route: " + source + " → " + dest + "\n" +
+                    "Departure: " + departure.format(DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a")),
+                    "Ride Published",
+                    JOptionPane.INFORMATION_MESSAGE);
 
-        clearForm();
-        if (onPublished != null) onPublished.run();
+            clearForm();
+            if (onPublished != null) onPublished.run();
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            showError(ex.getMessage());
+        } catch (Exception ex) {
+            showError("Failed to publish ride: " + ex.getMessage());
+        }
     }
 
     private void showError(String msg) {

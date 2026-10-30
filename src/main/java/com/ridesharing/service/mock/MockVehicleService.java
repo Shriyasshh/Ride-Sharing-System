@@ -38,4 +38,15 @@ public class MockVehicleService implements VehicleService {
     public boolean deleteVehicle(int vehicleId) {
         return store.getVehicles().removeIf(v -> v.getVehicleId() == vehicleId);
     }
+
+    @Override
+    public boolean deleteVehicle(int vehicleId, int ownerId) {
+        Vehicle v = findById(vehicleId);
+        if (v == null) return false;
+        if (v.getOwnerId() != ownerId) {
+            throw new IllegalArgumentException("Unauthorized: You do not own this vehicle.");
+        }
+        return store.getVehicles().removeIf(veh -> veh.getVehicleId() == vehicleId);
+    }
 }
+

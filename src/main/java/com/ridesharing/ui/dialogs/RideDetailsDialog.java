@@ -48,7 +48,7 @@ public class RideDetailsDialog extends JDialog {
         boolean isOwnRide = currentUser != null && currentUser.getUserId() == ride.getDriverId();
 
         // ── Header ──
-        JLabel titleLabel = AppTheme.subtitleLabel("Ride DEMO-R" + ride.getRideId());
+        JLabel titleLabel = AppTheme.subtitleLabel("Ride #" + ride.getRideId());
         titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel statusBadge = AppTheme.statusBadge(ride.getRideStatus().name());
@@ -126,6 +126,17 @@ public class RideDetailsDialog extends JDialog {
             JLabel notAvailable = AppTheme.secondaryLabel(reason);
             notAvailable.setAlignmentX(Component.LEFT_ALIGNMENT);
             main.add(notAvailable);
+
+            if (isOwnRide) {
+                main.add(Box.createVerticalStrut(12));
+                JButton viewPassengersBtn = AppTheme.primaryButton("\uD83D\uDC65  View Passengers");
+                viewPassengersBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
+                viewPassengersBtn.addActionListener(e -> {
+                    Window win = SwingUtilities.getWindowAncestor(this);
+                    new ViewPassengersDialog(win instanceof JFrame ? (JFrame) win : null, ride).setVisible(true);
+                });
+                main.add(viewPassengersBtn);
+            }
         }
 
         main.add(Box.createVerticalStrut(16));
@@ -192,17 +203,21 @@ public class RideDetailsDialog extends JDialog {
 
             JOptionPane.showMessageDialog(this,
                     "Booking Confirmed!\n\n" +
-                    "Booking ID: DEMO-B" + booking.getBookingId() + "\n" +
+                    "Booking ID: #" + booking.getBookingId() + "\n" +
                     "Seats: " + seats + "\n" +
-                    "Total: ₹" + total.toPlainString() + "\n\n" +
-                    "Note: This is a demo booking reference.",
+                    "Total: ₹" + total.toPlainString(),
                     "Booking Success",
                     JOptionPane.INFORMATION_MESSAGE);
             dispose();
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException | IllegalStateException ex) {
             JOptionPane.showMessageDialog(this,
                     ex.getMessage(),
                     "Booking Failed",
+                    JOptionPane.ERROR_MESSAGE);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "An unexpected error occurred: " + ex.getMessage(),
+                    "Booking Error",
                     JOptionPane.ERROR_MESSAGE);
         }
     }

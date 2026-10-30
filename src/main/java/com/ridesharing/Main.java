@@ -1,5 +1,6 @@
 package com.ridesharing;
 
+import com.ridesharing.service.ServiceFactory;
 import com.ridesharing.ui.app.MainFrame;
 import com.ridesharing.ui.theme.AppTheme;
 import com.ridesharing.util.DBConnection;
@@ -20,8 +21,8 @@ public class Main {
         // 1. Install FlatLaf modern desktop Look & Feel and global UI defaults
         AppTheme.install();
 
-        // 2. Perform non-blocking background check for database connection
-        checkDatabaseInBackground();
+        // 2. Connect to real database and configure ServiceFactory
+        initBackendServices();
 
         // 3. Launch the desktop application on the Swing Event Dispatch Thread (EDT)
         SwingUtilities.invokeLater(() -> {
@@ -31,22 +32,20 @@ public class Main {
     }
 
     /**
-     * Non-blocking database probe.
-     * If the database is available, logs connectivity details.
-     * If offline, notes that the application continues running in mock mode.
+     * Initializes backend services by verifying database connectivity.
+     * Activates real PostgreSQL services if reachable; falls back to mock mode if offline.
      */
-    private static void checkDatabaseInBackground() {
-        Thread dbThread = new Thread(() -> {
-            try (Connection connection = DBConnection.getConnection()) {
-                DatabaseMetaData metadata = connection.getMetaData();
-                System.out.println("[INFO] Database connected: "
-                        + metadata.getDatabaseProductName() + " "
-                        + metadata.getDatabaseProductVersion());
-            } catch (Exception e) {
-                System.out.println("[INFO] Real database not reachable (" + e.getMessage() + "). Application running in self-contained Mock Mode.");
-            }
-        }, "DB-Check-Worker");
-        dbThread.setDaemon(true);
-        dbThread.start();
+    private static void initBackendServices() {
+        try (Connection connection = DBConnection.getConnection()) {
+            DatabaseMetaData metadata = connection.getMetaData();
+            System.out.println("[INFO] Database connected: "
+                    + metadata.getDatabaseProductName() + " "
+                    + metadata.getDatabaseProductVersion());
+            ServiceFactory.setUseRealServices(true);
+        } catch (Exception e) {
+            System.out.println("[INFO] Real database not reachable (" + e.getMessage() + "). Application running in self-contained Mock Mode.");
+            ServiceFactory.setUseRealServices(false);
+        }
     }
 }
+

@@ -144,7 +144,7 @@ public class VehicleService implements com.ridesharing.service.interfaces.Vehicl
      * Delete a vehicle: checks whether the vehicle is associated with rides before deletion.
      *
      * @param vehicleId vehicle ID
-     * @return true if deletion succeeded, false otherwise
+     * @return true if deletion succeeded, false if vehicle not found
      * @throws IllegalStateException if vehicle is associated with existing rides
      */
     @Override
@@ -153,14 +153,62 @@ public class VehicleService implements com.ridesharing.service.interfaces.Vehicl
             return false;
         }
         try {
+            Vehicle vehicle = vehicleDAO.findVehicleById(vehicleId);
+            if (vehicle == null) {
+                return false;
+            }
+
             // Business rule: check whether the vehicle is associated with rides before deletion
             if (rideDAO.isVehicleUsedInRides(vehicleId)) {
-                throw new IllegalStateException("Cannot delete vehicle: it is associated with existing rides.");
+                throw new IllegalStateException("This vehicle cannot be deleted because it is associated with existing rides.");
             }
 
             return vehicleDAO.deleteVehicle(vehicleId);
 
         } catch (SQLException e) {
+            if ("23503".equals(e.getSQLState())) {
+                throw new IllegalStateException("This vehicle cannot be deleted because it is associated with existing rides.");
+            }
+            throw new RuntimeException("Database error deleting vehicle: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Delete a vehicle with owner authorization check.
+     *
+     * @param vehicleId vehicle ID
+     * @param ownerId ID of the requesting user
+     * @return true if deletion succeeded, false if vehicle not found
+     * @throws IllegalArgumentException if user does not own the vehicle
+     * @throws IllegalStateException if vehicle is associated with existing rides
+     */
+    @Override
+    public boolean deleteVehicle(int vehicleId, int ownerId) {
+        if (vehicleId <= 0 || ownerId <= 0) {
+            throw new IllegalArgumentException("Valid vehicle ID and owner ID are required.");
+        }
+        try {
+            Vehicle vehicle = vehicleDAO.findVehicleById(vehicleId);
+            if (vehicle == null) {
+                return false;
+            }
+
+            // Authorization rule: user must be the vehicle owner
+            if (vehicle.getOwnerId() != ownerId) {
+                throw new IllegalArgumentException("Unauthorized: You do not own this vehicle.");
+            }
+
+            // Business rule: check whether the vehicle is associated with rides before deletion
+            if (rideDAO.isVehicleUsedInRides(vehicleId)) {
+                throw new IllegalStateException("This vehicle cannot be deleted because it is associated with existing rides.");
+            }
+
+            return vehicleDAO.deleteVehicle(vehicleId);
+
+        } catch (SQLException e) {
+            if ("23503".equals(e.getSQLState())) {
+                throw new IllegalStateException("This vehicle cannot be deleted because it is associated with existing rides.");
+            }
             throw new RuntimeException("Database error deleting vehicle: " + e.getMessage(), e);
         }
     }

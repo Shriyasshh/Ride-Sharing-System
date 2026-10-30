@@ -158,7 +158,7 @@ public class LoginScreen extends JPanel {
             if (user != null) {
                 if (onSuccess != null) onSuccess.run();
             } else {
-                showError("Invalid email/phone or password. Try demo123.");
+                showError("Invalid email/phone or password.");
             }
         });
         timer.setRepeats(false);

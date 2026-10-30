@@ -269,6 +269,42 @@ public class BookingDAO {
     }
 
     /**
+     * Find all bookings with passenger contact details for a specific ride by joining
+     * bookings, rides, and users tables.
+     * Excludes sensitive fields like password hashes or government IDs.
+     *
+     * @param rideId ID of the ride
+     * @return list of bookings with passenger details populated
+     * @throws SQLException if a database access error occurs
+     */
+    public List<Booking> findBookingsWithPassengersByRide(int rideId) throws SQLException {
+        List<Booking> list = new ArrayList<>();
+        String sql = "SELECT b.booking_id, b.ride_id, b.passenger_id, b.booking_time, b.seats_booked, b.booking_status, "
+                   + "u.name AS passenger_name, u.phone_no AS passenger_phone, u.email AS passenger_email "
+                   + "FROM bookings b "
+                   + "JOIN rides r ON b.ride_id = r.ride_id "
+                   + "JOIN users u ON b.passenger_id = u.user_id "
+                   + "WHERE b.ride_id = ? "
+                   + "ORDER BY b.booking_time DESC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement statement = conn.prepareStatement(sql)) {
+
+            statement.setInt(1, rideId);
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    Booking booking = mapBooking(rs);
+                    booking.setPassengerName(rs.getString("passenger_name"));
+                    booking.setPassengerPhone(rs.getString("passenger_phone"));
+                    booking.setPassengerEmail(rs.getString("passenger_email"));
+                    list.add(booking);
+                }
+            }
+        }
+        return list;
+    }
+
+    /**
      * Retrieve all bookings in the system ordered by booking_id ascending.
      * Returns an empty list if none found.
      *

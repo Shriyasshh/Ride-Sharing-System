@@ -22,7 +22,10 @@ public class SettingsScreen extends JPanel {
     public void setOnLogout(Runnable onLogout) { this.onLogout = onLogout; }
 
     public void refresh() {
-        // Settings are static in mock mode
+        removeAll();
+        buildUI();
+        revalidate();
+        repaint();
     }
 
     private void buildUI() {
@@ -49,7 +52,7 @@ public class SettingsScreen extends JPanel {
         notifCard.add(notifHeading);
         notifCard.add(Box.createVerticalStrut(4));
 
-        JLabel notifNote = AppTheme.captionLabel("(These are mock settings — notifications are not yet implemented)");
+        JLabel notifNote = AppTheme.captionLabel("(These are simulated preferences)");
         notifNote.setAlignmentX(Component.LEFT_ALIGNMENT);
         notifCard.add(notifNote);
         notifCard.add(Box.createVerticalStrut(12));
@@ -90,12 +93,12 @@ public class SettingsScreen extends JPanel {
         aboutCard.add(aboutHeading);
         aboutCard.add(Box.createVerticalStrut(8));
 
-        JLabel version = AppTheme.bodyLabel("Version: 1.0-SNAPSHOT (Demo)");
+        JLabel version = AppTheme.bodyLabel("Version: 1.0-SNAPSHOT");
         version.setAlignmentX(Component.LEFT_ALIGNMENT);
         aboutCard.add(version);
         aboutCard.add(Box.createVerticalStrut(4));
 
-        JLabel techStack = AppTheme.secondaryLabel("Built with Java 26 • Swing • FlatLaf • Maven");
+        JLabel techStack = AppTheme.secondaryLabel("Built with Java 26 • Swing • FlatLaf • PostgreSQL • JDBC • Maven");
         techStack.setAlignmentX(Component.LEFT_ALIGNMENT);
         aboutCard.add(techStack);
         aboutCard.add(Box.createVerticalStrut(4));
@@ -105,12 +108,14 @@ public class SettingsScreen extends JPanel {
         aboutCard.add(description);
         aboutCard.add(Box.createVerticalStrut(12));
 
-        JLabel mockNote = new JLabel("<html><i>This application is running in <b>mock mode</b>. "
-                + "Data is stored in memory and will reset on restart.</i></html>");
-        mockNote.setFont(AppTheme.FONT_CAPTION);
-        mockNote.setForeground(AppTheme.STATUS_IN_PROGRESS);
-        mockNote.setAlignmentX(Component.LEFT_ALIGNMENT);
-        aboutCard.add(mockNote);
+        boolean realDb = com.ridesharing.service.ServiceFactory.isUseRealServices();
+        JLabel statusNote = new JLabel(realDb
+                ? "<html><span style='color:#10b981;'>&#10004;</span> Connected to PostgreSQL Database (Port 5433). Real services active.</html>"
+                : "<html><i>This application is running in <b>mock mode</b>. Data is stored in memory.</i></html>");
+        statusNote.setFont(AppTheme.FONT_CAPTION);
+        statusNote.setForeground(realDb ? AppTheme.STATUS_CONFIRMED : AppTheme.STATUS_IN_PROGRESS);
+        statusNote.setAlignmentX(Component.LEFT_ALIGNMENT);
+        aboutCard.add(statusNote);
 
         content.add(aboutCard);
         content.add(Box.createVerticalStrut(20));

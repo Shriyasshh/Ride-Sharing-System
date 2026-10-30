@@ -44,4 +44,16 @@ public interface BookingService {
      * Get the total confirmed seats booked for a ride.
      */
     int getConfirmedSeatsForRide(int rideId);
+
+    /**
+     * Retrieve all passenger bookings for a specific ride with authorization check.
+     * Only the publishing driver of the ride may access passenger details.
+     *
+     * @param rideId ID of the ride
+     * @param driverId ID of the requesting driver
+     * @return list of bookings with passenger details populated
+     * @throws IllegalArgumentException if ride is not found or requester is not the driver
+     */
+    List<Booking> getPassengersByRide(int rideId, int driverId);
 }
+
